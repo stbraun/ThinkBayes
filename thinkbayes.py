@@ -149,7 +149,7 @@ class _DictWrapper(object):
 
         values: map from value to probability
         """
-        for value, prob in values.iteritems():
+        for value, prob in values.items():
             self.Set(value, prob)
 
     def InitPmf(self, values):
@@ -218,7 +218,7 @@ class _DictWrapper(object):
         if m is None:
             m = self.MaxLike()
 
-        for x, p in self.d.iteritems():
+        for x, p in self.d.items():
             if p:
                 self.Set(x, math.log(p / m))
             else:
@@ -238,7 +238,7 @@ class _DictWrapper(object):
         if m is None:
             m = self.MaxLike()
 
-        for x, p in self.d.iteritems():
+        for x, p in self.d.items():
             self.Set(x, math.exp(p - m))
 
     def GetDict(self):
@@ -256,11 +256,11 @@ class _DictWrapper(object):
         dictionary are the values of the Hist/Pmf, and the
         values of the dictionary are frequencies/probabilities.
         """
-        return self.d.keys()
+        return list(self.d.keys())
 
     def Items(self):
         """Gets an unsorted sequence of (value, freq/prob) pairs."""
-        return self.d.items()
+        return list(self.d.items())
 
     def Render(self):
         """Generates a sequence of points suitable for plotting.
@@ -268,12 +268,12 @@ class _DictWrapper(object):
         Returns:
             tuple of (sorted value sequence, freq/prob sequence)
         """
-        return zip(*sorted(self.Items()))
+        return list(zip(*sorted(self.Items())))
 
     def Print(self):
         """Prints the values and freqs/probs in ascending order."""
-        for val, prob in sorted(self.d.iteritems()):
-            print val, prob
+        for val, prob in sorted(self.d.items()):
+            print(val, prob)
 
     def Set(self, x, y=0):
         """Sets the freq/prob associated with the value x.
@@ -314,12 +314,12 @@ class _DictWrapper(object):
 
     def Total(self):
         """Returns the total of the frequencies/probabilities in the map."""
-        total = sum(self.d.itervalues())
+        total = sum(self.d.values())
         return total
 
     def MaxLike(self):
         """Returns the largest frequency/probability in the map."""
-        return max(self.d.itervalues())
+        return max(self.d.values())
 
 
 class Hist(_DictWrapper):
@@ -385,11 +385,11 @@ class Pmf(_DictWrapper):
         return MakeCdfFromPmf(self, name=name)
 
     def ProbGreater(self, x):
-        t = [prob for (val, prob) in self.d.iteritems() if val > x]
+        t = [prob for (val, prob) in self.d.items() if val > x]
         return sum(t)
 
     def ProbLess(self, x):
-        t = [prob for (val, prob) in self.d.iteritems() if val < x]
+        t = [prob for (val, prob) in self.d.items() if val < x]
         return sum(t)
 
     def Normalize(self, fraction=1.0):
@@ -426,7 +426,7 @@ class Pmf(_DictWrapper):
 
         target = random.random()
         total = 0.0
-        for x, p in self.d.iteritems():
+        for x, p in self.d.items():
             total += p
             if total >= target:
                 return x
@@ -441,7 +441,7 @@ class Pmf(_DictWrapper):
             float mean
         """
         mu = 0.0
-        for x, p in self.d.iteritems():
+        for x, p in self.d.items():
             mu += p * x
         return mu
 
@@ -459,7 +459,7 @@ class Pmf(_DictWrapper):
             mu = self.Mean()
 
         var = 0.0
-        for x, p in self.d.iteritems():
+        for x, p in self.d.items():
             var += p * (x - mu) ** 2
         return var
 
@@ -812,7 +812,7 @@ class Cdf(object):
 
         Note: in Python3, returns an iterator.
         """
-        return zip(self.xs, self.ps)
+        return list(zip(self.xs, self.ps))
 
     def Append(self, x, p):
         """Add an (x, p) pair to the end of this CDF.
@@ -1008,7 +1008,7 @@ def MakeCdfFromDict(d, name=''):
     Returns:
         Cdf object
     """
-    return MakeCdfFromItems(d.iteritems(), name)
+    return MakeCdfFromItems(iter(d.items()), name)
 
 
 def MakeCdfFromHist(hist, name=''):
@@ -1138,7 +1138,7 @@ class Suite(Pmf):
     def Print(self):
         """Prints the hypotheses and their probabilities."""
         for hypo, prob in sorted(self.Items()):
-            print hypo, prob
+            print(hypo, prob)
 
     def MakeOdds(self):
         """Transforms from probabilities to odds.
@@ -1292,7 +1292,7 @@ class EstimatedPdf(Pdf):
 
     def MakePmf(self, xs, name=''):
         ps = self.kde.evaluate(xs)
-        pmf = MakePmfFromItems(zip(xs, ps), name=name)
+        pmf = MakePmfFromItems(list(zip(xs, ps)), name=name)
         return pmf
 
 
@@ -1400,7 +1400,7 @@ def SampleSum(dists, n):
 
     returns: new Pmf of sums
     """
-    pmf = MakePmfFromList(RandomSum(dists) for i in xrange(n))
+    pmf = MakePmfFromList(RandomSum(dists) for i in range(n))
     return pmf
 
 
@@ -1469,7 +1469,7 @@ def MakePoissonPmf(lam, high, step=1):
     returns: normalized Pmf
     """
     pmf = Pmf()
-    for k in xrange(0, high + 1, step):
+    for k in range(0, high + 1, step):
         p = EvalPoissonPmf(k, lam)
         pmf.Set(k, p)
     pmf.Normalize()
@@ -1608,14 +1608,14 @@ class Beta(object):
             pmf = cdf.MakePmf()
             return pmf
 
-        xs = [i / (steps - 1.0) for i in xrange(steps)]
+        xs = [i / (steps - 1.0) for i in range(steps)]
         probs = [self.EvalPdf(x) for x in xs]
-        pmf = MakePmfFromDict(dict(zip(xs, probs)), name)
+        pmf = MakePmfFromDict(dict(list(zip(xs, probs))), name)
         return pmf
 
     def MakeCdf(self, steps=101):
         """Returns the CDF of this distribution."""
-        xs = [i / (steps - 1.0) for i in xrange(steps)]
+        xs = [i / (steps - 1.0) for i in range(steps)]
         ps = [scipy.special.betainc(self.alpha, self.beta, x) for x in xs]
         cdf = Cdf(xs, ps)
         return cdf
@@ -1712,7 +1712,7 @@ class Dirichlet(object):
         """
         alpha0 = self.params.sum()
         ps = self.params / alpha0
-        return MakePmfFromItems(zip(xs, ps), name=name)
+        return MakePmfFromItems(list(zip(xs, ps)), name=name)
 
 
 def BinomialCoef(n, k):
